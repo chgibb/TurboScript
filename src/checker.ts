@@ -194,9 +194,9 @@ export function initialize(context: CheckContext, node: Node, parentScope: Scope
             }
         }
 
-        if (symbol.name == "constructor") {
-            symbol.rename = "_set";
-        }
+        // if (symbol.name == "constructor") {
+        //     symbol.rename = "_ctr";
+        // }
 
         addScopeToSymbol(symbol, parentScope);
         linkSymbolToNode(symbol, node);
