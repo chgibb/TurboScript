@@ -1,5 +1,5 @@
 export function test(): Array<int32> {
-    let b = [
+    let b: Array<int32> = [
         0,
         1,
         2
