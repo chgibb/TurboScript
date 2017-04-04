@@ -1,0 +1,21 @@
+class A {
+
+    type:uint32;
+
+    constructor(type:uint32){
+        this.type = type;
+    }
+
+}
+
+export class B extends A {
+
+    id:uint32;
+
+    constructor(id:uint32){
+        super(1);
+        this.id = id;
+    }
+
+}
+

@@ -27,6 +27,7 @@ export enum NodeKind {
     MODULE,
     IMPORTS,
     CLASS,
+    SUPER,
     CONSTANTS,
     CONTINUE,
     EMPTY,
@@ -1071,7 +1072,7 @@ export function createSizeOf(type: Node): Node {
     return node;
 }
 
-export function createboolean(value: boolean): Node {
+export function createBoolean(value: boolean): Node {
     let node = new Node();
     node.kind = NodeKind.BOOLEAN;
     node.intValue = value ? 1 : 0;
@@ -1144,6 +1145,12 @@ export function createAny(): Node {
 export function createEmpty(): Node {
     let node = new Node();
     node.kind = NodeKind.EMPTY;
+    return node;
+}
+
+export function createSuper(): Node {
+    let node = new Node();
+    node.kind = NodeKind.SUPER;
     return node;
 }
 

@@ -3,7 +3,7 @@ import {Range, Log, spanRanges, createRange} from "./log";
 import {StringBuilder_new} from "./stringbuilder";
 import {
     Node, NodeKind, isUnary, createUnary, createBinary, createName, createNull, createThis,
-    createParseError, createInt, createString, createboolean, createNew, createAlignOf, createSizeOf, createDot,
+    createParseError, createInt, createString, createBoolean, createNew, createAlignOf, createSizeOf, createDot,
     createCast, createIndex, createCall, createHook, createIf, createWhile, createBlock, createReturn, createEmpty,
     NodeFlag, createEnum, allFlags, createVariable, createParameters, createParameter, createClass, createExtends,
     createImplements, appendFlag, NODE_FLAG_GET, NODE_FLAG_SET, createFunction, NODE_FLAG_OPERATOR, createConstants,
@@ -12,7 +12,8 @@ import {
     NODE_FLAG_VIRTUAL, createModule, createFloat, NODE_FLAG_START,
     createDelete, createImports, NODE_FLAG_INTERNAL_IMPORT, createExternalImport, NODE_FLAG_ANYFUNC, createType,
     createAny, createArray,
-    NODE_FLAG_JAVASCRIPT, NODE_FLAG_EXTERNAL_IMPORT, createInternalImport, createInternalImportFrom, createDouble
+    NODE_FLAG_JAVASCRIPT, NODE_FLAG_EXTERNAL_IMPORT, createInternalImport, createInternalImportFrom, createDouble,
+    createSuper
 } from "./node";
 
 export enum Precedence {
@@ -284,11 +285,11 @@ class ParserContext {
             }
 
             if (this.eat(TokenKind.TRUE)) {
-                return createboolean(true).withRange(token.range);
+                return createBoolean(true).withRange(token.range);
             }
 
             if (this.eat(TokenKind.FALSE)) {
-                return createboolean(false).withRange(token.range);
+                return createBoolean(false).withRange(token.range);
             }
 
             if (this.eat(TokenKind.NEW)) {
@@ -663,6 +664,62 @@ class ParserContext {
         let token = this.current;
         this.advance();
         return createEmpty().withRange(token.range);
+    }
+
+    parseSuper(): Node {
+        let token = this.current;
+        assert(token.kind == TokenKind.SUPER);
+        this.advance();
+
+        if (!this.expect(TokenKind.LEFT_PARENTHESIS)) {
+            return null;
+        }
+
+        if (!this.peek(TokenKind.RIGHT_PARENTHESIS)) {
+            while (true) {
+                let argument = this.current;
+
+                if (!this.expect(TokenKind.IDENTIFIER)) {
+                    return null;
+                }
+
+                let type: Node;
+                let value: Node = null;
+                let range = argument.range;
+
+                if (this.expect(TokenKind.COLON)) {
+                    type = this.parseType();
+
+                    if (this.peek(TokenKind.LESS_THAN)) {
+                        let parameters = this.parseParameters();
+                        if (parameters == null) {
+                            return null;
+                        }
+                        type.appendChild(parameters);
+                    }
+
+                    if (type != null) {
+                        range = spanRanges(range, type.range);
+                    }
+
+                    // Recover from a missing type
+                    else if (this.peek(TokenKind.COMMA) || this.peek(TokenKind.RIGHT_PARENTHESIS)) {
+                        type = createParseError();
+                    }
+
+                    else {
+                        return null;
+                    }
+                }
+
+                // Recover from a missing colon
+                else if (this.peek(TokenKind.COMMA) || this.peek(TokenKind.RIGHT_PARENTHESIS)) {
+                    type = createParseError();
+                }
+            }
+        }
+
+        return createSuper().withRange(token.range);
     }
 
     parseEnum(firstFlag: NodeFlag): Node {
@@ -1577,6 +1634,7 @@ class ParserContext {
             return null;
         }
 
+        if (this.peek(TokenKind.SUPER)) return this.parseSuper();
         if (this.peek(TokenKind.LEFT_BRACE)) return this.parseBlock();
         if (this.peek(TokenKind.BREAK)) return this.parseLoopJump(NodeKind.BREAK);
         if (this.peek(TokenKind.CONTINUE)) return this.parseLoopJump(NodeKind.CONTINUE);

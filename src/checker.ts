@@ -8,7 +8,7 @@ import {Type, ConversionKind} from "./type";
 import {
     Node, NodeKind, createVariable, createType, rangeForFlag, NODE_FLAG_EXPORT, NODE_FLAG_PRIVATE,
     NODE_FLAG_PUBLIC, NODE_FLAG_GET, NODE_FLAG_SET, NODE_FLAG_STATIC, NODE_FLAG_PROTECTED,
-    NODE_FLAG_DECLARE, isExpression, createInt, createboolean, createNull, createMemberReference, createSymbolReference,
+    NODE_FLAG_DECLARE, isExpression, createInt, createBoolean, createNull, createMemberReference, createSymbolReference,
     isUnary, NODE_FLAG_UNSIGNED_OPERATOR, createCall, isBinary, createLong, createDouble, createFloat,
     NODE_FLAG_EXTERNAL_IMPORT, NODE_FLAG_GENERIC, createReturn, createThis
 } from "./node";
@@ -992,7 +992,7 @@ export function createDefaultValueForType(context: CheckContext, type: Type): No
     }
 
     if (type == context.booleanType) {
-        return createboolean(false);
+        return createBoolean(false);
     }
 
     if (type.isClass()) {

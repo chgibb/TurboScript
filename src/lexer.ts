@@ -59,6 +59,7 @@ export enum TokenKind {
     BREAK,
     MODULE,
     CLASS,
+    SUPER,
     CONST,
     CONTINUE,
     DECLARE,
@@ -188,6 +189,7 @@ export function tokenToString(token: TokenKind): string {
     if (token == TokenKind.BREAK) return "'break'";
     if (token == TokenKind.MODULE) return "'module'";
     if (token == TokenKind.CLASS) return "'class'";
+    if (token == TokenKind.SUPER) return "'super'";
     if (token == TokenKind.CONST) return "'const'";
     if (token == TokenKind.CONTINUE) return "'continue'";
     if (token == TokenKind.DECLARE) return "'declare'";
@@ -327,6 +329,7 @@ export function tokenize(source: Source, log: Log): Token {
                 else if (length == 5) {
                     if (text == "break") kind = TokenKind.BREAK;
                     else if (text == "class") kind = TokenKind.CLASS;
+                    else if (text == "super") kind = TokenKind.SUPER;
                     else if (text == "const") kind = TokenKind.CONST;
                     else if (text == "false") kind = TokenKind.FALSE;
                     else if (text == "while") kind = TokenKind.WHILE;
