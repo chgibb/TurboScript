@@ -6,6 +6,10 @@ class A {
         this.type = type;
     }
 
+    change (type:uint32):void {
+        this.type = type;
+    }
+
 }
 
 export class B extends A {

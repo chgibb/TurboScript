@@ -92,7 +92,7 @@ export class Symbol {
     //
     offset: int32;
 
-    get internalName():string{
+    get internalName(): string {
         return this.rename != null ? this.rename : this.name;
     }
 
@@ -145,8 +145,16 @@ export class Symbol {
     }
 
     parent(): Symbol {
-        var parent = this.node.parent;
+        let parent = this.node.parent;
         return parent.kind == NodeKind.CLASS ? parent.symbol : null;
+    }
+
+    superSymbol(): Symbol {
+        let extendNode = this.node.firstChild;
+        if (extendNode && extendNode.kind == NodeKind.EXTENDS) {
+            return extendNode.firstChild ? extendNode.firstChild.symbol : null;
+        }
+        return null;
     }
 
     resolvedTypeUnderlyingIfEnumValue(context: CheckContext): Type {
@@ -161,17 +169,17 @@ export class Symbol {
             return;
         }
 
-        var offset = 0;
-        var child = this.node.firstChild;
-        var maxAlignment = 1;
+        let offset = 0;
+        let child = this.node.firstChild;
+        let maxAlignment = 1;
 
         while (child != null) {
             if (child.kind == NodeKind.VARIABLE) {
-                var type = child.symbol.resolvedType;
+                let type = child.symbol.resolvedType;
 
                 // Ignore invalid members
                 if (type != context.errorType) {
-                    var alignmentOf = type.variableAlignmentOf(context);
+                    let alignmentOf = type.variableAlignmentOf(context);
 
                     // Align the member to the next available slot
                     offset = alignToNextMultipleOf(offset, alignmentOf);

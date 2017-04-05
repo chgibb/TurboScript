@@ -235,6 +235,10 @@ class ParserContext {
                 return createThis().withRange(token.range);
             }
 
+            if (this.eat(TokenKind.SUPER)) {
+                return createSuper().withRange(token.range);
+            }
+
             if (this.peek(TokenKind.CHARACTER)) {
                 let text = this.parseQuotedString(token.range);
                 if (text == null) {
@@ -355,7 +359,6 @@ class ParserContext {
 
         if (this.peek(TokenKind.LEFT_BRACE)) {
             console.log("Check if its JS");
-
         }
 
         this.unexpectedToken();
@@ -664,62 +667,6 @@ class ParserContext {
         let token = this.current;
         this.advance();
         return createEmpty().withRange(token.range);
-    }
-
-    parseSuper(): Node {
-        let token = this.current;
-        assert(token.kind == TokenKind.SUPER);
-        this.advance();
-
-        if (!this.expect(TokenKind.LEFT_PARENTHESIS)) {
-            return null;
-        }
-
-        if (!this.peek(TokenKind.RIGHT_PARENTHESIS)) {
-            while (true) {
-                let argument = this.current;
-
-                if (!this.expect(TokenKind.IDENTIFIER)) {
-                    return null;
-                }
-
-                let type: Node;
-                let value: Node = null;
-                let range = argument.range;
-
-                if (this.expect(TokenKind.COLON)) {
-                    type = this.parseType();
-
-                    if (this.peek(TokenKind.LESS_THAN)) {
-                        let parameters = this.parseParameters();
-                        if (parameters == null) {
-                            return null;
-                        }
-                        type.appendChild(parameters);
-                    }
-
-                    if (type != null) {
-                        range = spanRanges(range, type.range);
-                    }
-
-                    // Recover from a missing type
-                    else if (this.peek(TokenKind.COMMA) || this.peek(TokenKind.RIGHT_PARENTHESIS)) {
-                        type = createParseError();
-                    }
-
-                    else {
-                        return null;
-                    }
-                }
-
-                // Recover from a missing colon
-                else if (this.peek(TokenKind.COMMA) || this.peek(TokenKind.RIGHT_PARENTHESIS)) {
-                    type = createParseError();
-                }
-            }
-        }
-
-        return createSuper().withRange(token.range);
     }
 
     parseEnum(firstFlag: NodeFlag): Node {
@@ -1262,7 +1209,7 @@ class ParserContext {
                 let firstArgumentFlag = this.parseFlags();
 
                 let argument = this.current;
-                ;
+
                 if (!this.expect(TokenKind.IDENTIFIER)) {
                     return null;
                 }
@@ -1634,7 +1581,7 @@ class ParserContext {
             return null;
         }
 
-        if (this.peek(TokenKind.SUPER)) return this.parseSuper();
+        // if (this.peek(TokenKind.SUPER)) return this.parseSuper();
         if (this.peek(TokenKind.LEFT_BRACE)) return this.parseBlock();
         if (this.peek(TokenKind.BREAK)) return this.parseLoopJump(NodeKind.BREAK);
         if (this.peek(TokenKind.CONTINUE)) return this.parseLoopJump(NodeKind.CONTINUE);

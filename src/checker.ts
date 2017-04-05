@@ -152,6 +152,10 @@ export function initialize(context: CheckContext, node: Node, parentScope: Scope
             parentScope.define(context.log, genericSymbol, ScopeHint.NORMAL);
         }
 
+        let extendNode = node.firstChild;
+        if (extendNode && extendNode.kind == NodeKind.EXTENDS) {
+            resolveAsType(context, extendNode.extendsType(), parentScope);
+        }
     }
 
     // Function
@@ -215,6 +219,11 @@ export function initialize(context: CheckContext, node: Node, parentScope: Scope
             let parent = symbol.parent();
             initializeSymbol(context, parent);
             node.insertChildBefore(node.functionFirstArgument(), createVariable("this", createType(parent.resolvedType), null));
+            let superSymbol = parent.superSymbol();
+
+            if(superSymbol) {
+                node.insertChildAfter(node.functionFirstArgument(), createVariable("super", createType(superSymbol.resolvedType), null));
+            }
 
             //All constructors have special return "this" type
             if (symbol.name == "constructor") {
@@ -1156,9 +1165,6 @@ export function resolve(context: CheckContext, node: Node, parentScope: Scope): 
         initializeSymbol(context, node.symbol);
         context.enclosingModule = node.symbol;
         resolveChildren(context, node, node.scope);
-        // if (node.symbol.kind == SymbolKind.TYPE_MODULE) {
-        //     node.symbol.determineClassLayout(context);
-        // }
         context.enclosingModule = oldEnclosingModule;
     }
 
@@ -1216,9 +1222,8 @@ export function resolve(context: CheckContext, node: Node, parentScope: Scope): 
         }
     }
 
-    else if (kind == NodeKind.PARAMETER) {
-        let symbol = node.symbol;
-
+    else if (kind == NodeKind.PARAMETER || kind == NodeKind.PARAMETERS) {
+        // let symbol = node.symbol;
     }
 
     else if (kind == NodeKind.VARIABLE) {
@@ -1373,6 +1378,15 @@ export function resolve(context: CheckContext, node: Node, parentScope: Scope): 
         let symbol = parentScope.findNested("this", ScopeHint.NORMAL, FindNested.NORMAL);
         if (symbol == null) {
             context.log.error(node.range, "Cannot use 'this' here");
+        } else {
+            node.becomeSymbolReference(symbol);
+        }
+    }
+
+    else if (kind == NodeKind.SUPER) {
+        let symbol = parentScope.findNested("super", ScopeHint.NORMAL, FindNested.NORMAL);
+        if (symbol == null) {
+            context.log.error(node.range, "Cannot use 'super' here");
         } else {
             node.becomeSymbolReference(symbol);
         }
@@ -1669,17 +1683,11 @@ export function resolve(context: CheckContext, node: Node, parentScope: Scope): 
     }
 
     else if (kind == NodeKind.EMPTY) {
-    }
 
-    else if (kind == NodeKind.PARAMETERS) {
-        // resolveAsType(context, node.genericType(), parentScope);
-        // resolveAsExpression(context, node.expressionValue(), parentScope);
-        // context.log.error(node.range, "Generics are not implemented yet");
     }
 
     else if (kind == NodeKind.EXTENDS) {
-        resolveAsType(context, node.extendsType(), parentScope);
-        //context.log.error(node.range, "Subclassing is not implemented yet");
+
     }
 
     else if (kind == NodeKind.IMPLEMENTS) {

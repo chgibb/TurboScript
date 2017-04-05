@@ -27,7 +27,6 @@ export enum NodeKind {
     MODULE,
     IMPORTS,
     CLASS,
-    SUPER,
     CONSTANTS,
     CONTINUE,
     EMPTY,
@@ -66,6 +65,7 @@ export enum NodeKind {
     SIZE_OF,
     STRING,
     THIS,
+    SUPER,
     TYPE,
 
         // Unary expressions
@@ -1040,6 +1040,12 @@ export function createThis(): Node {
     return node;
 }
 
+export function createSuper(): Node {
+    let node = new Node();
+    node.kind = NodeKind.SUPER;
+    return node;
+}
+
 export function createAddressOf(value: Node): Node {
     assert(isExpression(value));
     let node = new Node();
@@ -1145,12 +1151,6 @@ export function createAny(): Node {
 export function createEmpty(): Node {
     let node = new Node();
     node.kind = NodeKind.EMPTY;
-    return node;
-}
-
-export function createSuper(): Node {
-    let node = new Node();
-    node.kind = NodeKind.SUPER;
     return node;
 }
 
