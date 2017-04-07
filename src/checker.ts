@@ -18,6 +18,7 @@ import {Scope, ScopeHint, FindNested} from "./scope";
 import {StringBuilder_new} from "./stringbuilder";
 import {alignToNextMultipleOf, isPositivePowerOf2} from "./imports";
 import {MAX_UINT32_VALUE, MIN_INT32_VALUE, MAX_INT32_VALUE} from "./const";
+import {computeClassId} from "./utils";
 /**
  * Author : Nidin Vinayakan
  */
@@ -118,13 +119,31 @@ export function initialize(context: CheckContext, node: Node, parentScope: Scope
         parentScope = symbol.scope;
     }
 
-    // Class
-    if (kind == NodeKind.CLASS || kind == NodeKind.ENUM) {
+    // Enum
+    if(kind == NodeKind.ENUM) {
         assert(node.symbol == null);
 
         let symbol = new Symbol();
-        symbol.kind = kind == NodeKind.CLASS ? SymbolKind.TYPE_CLASS : SymbolKind.TYPE_ENUM;
+        symbol.kind = SymbolKind.TYPE_ENUM;
         symbol.name = node.stringValue;
+
+        symbol.resolvedType = new Type();
+        symbol.resolvedType.symbol = symbol;
+        symbol.flags = SYMBOL_FLAG_IS_REFERENCE;
+        addScopeToSymbol(symbol, parentScope);
+        linkSymbolToNode(symbol, node);
+        parentScope.define(context.log, symbol, ScopeHint.NORMAL);
+        parentScope = symbol.scope;
+    }
+
+    // Class
+    else if (kind == NodeKind.CLASS) {
+        assert(node.symbol == null);
+
+        let symbol = new Symbol();
+        symbol.kind = SymbolKind.TYPE_CLASS;
+        symbol.name = node.stringValue;
+        symbol.classId = computeClassId(symbol.name);
 
         symbol.resolvedType = new Type();
         symbol.resolvedType.symbol = symbol;

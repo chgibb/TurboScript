@@ -74,6 +74,8 @@ export class Symbol {
     maxAlignment: int32 = 0;
     rename: string;
 
+    classId:number;
+
     // The "offset" variable is used to store kind-specific information
     //
     //   TYPE_CLASS: N/A
