@@ -39,6 +39,7 @@ request.get(nightlyBaseUrl + "index.json", function (error, response, body: stri
 function generateDownloadUrl(nightlyInfo: Nightly[]): string {
     //Just take first entry, assuming it is the latest.
     let latest: Nightly = nightlyInfo[0];
+    latest.version = "v8.0.0-nightly20170406a94a5da78c";
     fileName = "node-" + latest.version + getPlatform();
     return nightlyBaseUrl + latest.version + "/" + fileName;
 }

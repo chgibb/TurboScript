@@ -31,8 +31,9 @@ export function readFileAsync(filePath: string): Promise<Uint8Array> {
  * @throws Error(string)
  */
 export function tcCompile(inputPath: string, outputPath:string): Promise<void> {
-    let tc = child.spawn("./bin/tc",
-        [ "--out", outputPath, inputPath ], { shell: true });
+
+    let tc = child.spawn("./bin/tc", [ "--out", outputPath, inputPath ], { shell: true });
+
     return new Promise<void>((resolve, reject) => {
         tc.on("close", (code) => {
             if (code !== 0) {
@@ -61,6 +62,7 @@ export function statAsync(path: string): Promise<fs.Stats> {
         });
     });
 }
+
 
 /**
  * Use unlink a file
@@ -99,7 +101,6 @@ export function unlinkAsync(path: string, throwOnErr?: boolean): Promise<void> {
 export async function instantiateWasmFile(filePath: string): Promise<WebAssembly.Instance> {
     // Read the file
     let data = await readFileAsync(filePath);
-
     // Compile
     let mod = await WebAssembly.compile(data);
 

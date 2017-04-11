@@ -1,0 +1,77 @@
+#!node --expose_wasm
+
+const fs = require('fs-extra');
+const original_spawn = require('child_process').spawn;
+const AlsatianCliOptions = require("./node_modules/alsatian/cli/alsatian-cli-options").AlsatianCliOptions;
+const CliTestRunner = require("./node_modules/alsatian/cli/cli-test-runner").CliTestRunner;
+
+console.log(`Running on ${process.version}`);
+
+//Windows spawn work around
+let spawn = original_spawn;
+if (process.platform === 'win32') {
+    spawn = function (cmd, args) {
+        return original_spawn('cmd', ['/s', '/c', cmd].concat(args), {
+            windowsVerbatimArguments: true
+        });
+    }
+}
+
+const turboCompilerBuilder = spawn('./node_modules/.bin/tsc', ['-w', '-p', './src']);
+turboCompilerBuilder.stdout.on('data', data => console.log(trim(`${data}`)));
+turboCompilerBuilder.stderr.on('data', data => console.error(trim(`${data}`)));
+turboCompilerBuilder.on('close', code => console.log(`Turbo compiler builder exit with code:${code}`));
+
+const testSuiteBuilder = spawn('./node_modules/.bin/tsc', ['-w', '-p', './tests/turboscript.spec.tsconfig.json']);
+testSuiteBuilder.stdout.on('data', data => console.log(trim(`${data}`)));
+testSuiteBuilder.stderr.on('data', data => console.error(trim(`${data}`)));
+testSuiteBuilder.on('close', code => console.log(`Test suite builder exit with code:${code}`));
+
+// gaze_run_interrupt('{lib,tests}/**/*.ts', [
+//     {
+//         command: 'tsc',
+//         args: ['-p', './src']
+//     },
+//     {
+//         command: '../../node-v8/bin/node',
+//         args: ['--expose_wasm', '../../node_modules/alsatian/cli/alsatian-cli.js', './**/*.spec.js'],
+//         cwd: "./build/tests"
+//     }
+// ]);
+
+let testRunner = null;
+
+fs.watch('tests', function (event, filename) {
+
+    if (filename.endsWith(".ts") || filename.endsWith(".tbs")) {
+        if (testRunner) {
+            testRunner.stdin.pause();
+            testRunner.kill();
+        }
+        console.log("Test trigger");
+        spinTestRunner();
+    }
+});
+
+function spinTestRunner() {
+    // testRunner = spawn('./node-v8/bin/node', [
+    //     '--expose_wasm',
+    //     './node_modules/alsatian/cli/alsatian-cli.js',
+    //     './build/tests/**/*.spec.js'
+    // ]);
+    // testRunner.stdout.pipe(process.stdout);
+    // testRunner.stderr.pipe(process.stderr);
+    // testRunner.stdout.on('data', data => process.stdout.write(data) );
+    // testRunner.stderr.on('data', data => process.stderr.write(data) );
+    // testRunner.on('close', code => console.log(`Test runner exit with code:${code}`));
+
+    let userArguments = new AlsatianCliOptions(['./build/tests/**/*.spec.js']);
+    let cliTestRunner = CliTestRunner.create();
+    cliTestRunner.run(userArguments);
+}
+
+spinTestRunner();
+
+function trim(str) {
+    return str.trim();
+}
